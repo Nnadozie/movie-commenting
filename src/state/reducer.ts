@@ -1,12 +1,11 @@
 import { Dispatch } from 'react';
+import { getDatabase, ref, set, child, push, update, onValue, off } from 'firebase/database';
+import { User } from '@firebase/auth';
 
-export type INIT = { type: 'INIT' };
-export type SET_CURRENT_MOVIE = { type: 'SET_CURRENT_MOVIE'; value: string };
-export type SYNC_MESSAGES = { type: 'SYNC_MESSAGES'; value: { movieId: string; message: Message } };
-export type FETCH_MESSAGES = { type: 'FETCH_MESSAGES'; value: { movieId: string } };
-export type SEND_MESSAGE = { type: 'SEND_MESSAGE'; value: { movieId: string; message: Message } };
+export type SET_USER = { type: 'SET_USER'; value: User };
+export type SET_MOVIES = { type: 'SET_MOVIES'; value: Movie[] };
 
-export type Actions = INIT | SET_CURRENT_MOVIE | SYNC_MESSAGES | FETCH_MESSAGES | SEND_MESSAGE;
+export type Actions = SET_USER | SET_MOVIES;
 
 export type Movie = {
   year: string;
@@ -23,66 +22,30 @@ export type Movie = {
   actors: string[];
 };
 
-export type Message = {
-  value: string;
-  timestamp: Date;
-};
-
 export type State = {
   dispatch: Dispatch<Actions>;
-  movies: Movie[];
-  currentMovie: string | null;
-  messages: {
-    [movieId: string]: {
-      [messageKey: string]: Message;
-    };
-  };
+  movies: Movie[] | undefined;
+  user: User | undefined;
 };
 
+function addCommentListener() {
+  //gets what's already there and puts it in state,
+  //puts every update in state
+}
+
 const reducer = (state: State, action: Actions): State => {
+  console.log('in reduceer');
   switch (action.type) {
-    case 'INIT':
-      //fetch movies data
-      const data: Movie[] = [];
+    case 'SET_USER':
       return {
         ...state,
-        movies: data,
+        user: action.value,
       };
-    case 'SET_CURRENT_MOVIE':
+    case 'SET_MOVIES':
+      console.log('setting user');
       return {
         ...state,
-        currentMovie: action.value,
-      };
-
-    case 'SEND_MESSAGE':
-      //send update to firebase using movie id
-
-      return {
-        ...state,
-      };
-
-    case 'SYNC_MESSAGES':
-      //call this action whenever a message changes
-      //get updated messages from firebase
-      const updatedMessages: { [movieId: string]: Message } = {};
-
-      return {
-        ...state,
-        messages: {
-          [action.value.movieId]: updatedMessages,
-        },
-      };
-
-    case 'FETCH_MESSAGES':
-      //fetch movie messages from firebase
-      //call this only if movieId does not exist
-      const movieMessages: { [movieId: string]: Message } = {};
-
-      return {
-        ...state,
-        messages: {
-          [action.value.movieId]: movieMessages,
-        },
+        movies: action.value,
       };
     default:
       return state;

@@ -1,19 +1,20 @@
-import React, { createContext, ReactElement, useReducer } from 'react';
+import React, { createContext, ReactElement, useContext, useReducer } from 'react';
 import reducer, { State } from './reducer';
 
 const defaultState: State = {
   dispatch: () => {},
-  movies: [],
-  currentMovie: null,
-  messages: {},
+  movies: undefined,
+  user: undefined,
 };
 
-export const Context = createContext(defaultState);
+const ChatContext = createContext(defaultState);
 
-const Store: React.FC<{ children: ReactElement }> = ({ children }) => {
+const ChatProvider: React.FC<{ children: ReactElement }> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, defaultState);
 
-  return <Context.Provider value={{ ...state, dispatch: dispatch }}>{children}</Context.Provider>;
+  return <ChatContext.Provider value={{ ...state, dispatch: dispatch }}>{children}</ChatContext.Provider>;
 };
 
-export default Store;
+const useChatContext = () => useContext(ChatContext);
+
+export { ChatProvider, useChatContext };

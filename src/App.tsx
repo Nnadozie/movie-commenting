@@ -1,19 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
+import { Routes, Route, Link } from 'react-router-dom';
 import './App.css';
+import Chat from './components/Chat';
+import Movies from './components/Movies';
 
 function App() {
   return (
-    <div id="chat">
-      <ul id="messages"></ul>
-
-      <form id="message-form">
-        <input id="message-input" type="text" />
-        <button id="message-btn" type="submit">
-          Send
-        </button>
-      </form>
-    </div>
+    <Routes>
+      <Route path="/" element={<Movies />} />
+      <Route path="/movies/:name/:runtime/comments" element={<Chat />} />
+    </Routes>
   );
 }
 
