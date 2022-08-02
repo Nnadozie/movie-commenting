@@ -3,13 +3,13 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from
 import { getDatabase, ref, set, push, onValue, serverTimestamp } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyD5fQ_yklmQWMfQUc1jbO70b9e5DVFusS0',
-  authDomain: 'movie-commenting.firebaseapp.com',
-  databaseURL: 'https://movie-commenting-default-rtdb.europe-west1.firebasedatabase.app',
-  projectId: 'movie-commenting',
-  storageBucket: 'movie-commenting.appspot.com',
-  messagingSenderId: '1033010074298',
-  appId: '1:1033010074298:web:004b3bc8c2eac05a4ee883',
+  apiKey: process.env.REACT_APP_apiKey,
+  authDomain: process.env.REACT_APP_authDomain,
+  databaseURL: process.env.REACT_APP_databaseURL,
+  projectId: process.env.REACT_APP_projectId,
+  storageBucket: process.env.REACT_APP_storageBucket,
+  messagingSenderId: process.env.REACT_APP_messagingSenderId,
+  appId: process.env.REACT_APP_appId,
 };
 
 const app = initializeApp(firebaseConfig);

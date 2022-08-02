@@ -1,5 +1,4 @@
 import { Dispatch } from 'react';
-import { getDatabase, ref, set, child, push, update, onValue, off } from 'firebase/database';
 import { User } from '@firebase/auth';
 
 export type SET_USER = { type: 'SET_USER'; value: User };
@@ -28,13 +27,7 @@ export type State = {
   user: User | undefined;
 };
 
-function addCommentListener() {
-  //gets what's already there and puts it in state,
-  //puts every update in state
-}
-
 const reducer = (state: State, action: Actions): State => {
-  console.log('in reduceer');
   switch (action.type) {
     case 'SET_USER':
       return {
@@ -42,7 +35,6 @@ const reducer = (state: State, action: Actions): State => {
         user: action.value,
       };
     case 'SET_MOVIES':
-      console.log('setting user');
       return {
         ...state,
         movies: action.value,

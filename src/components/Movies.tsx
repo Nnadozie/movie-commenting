@@ -1,10 +1,36 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+// @ts-nocheck
+import { useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { useTable } from 'react-table';
+import { useTable, useFilters } from 'react-table';
 import { Movie } from '../state/reducer';
 import { useNavigate } from 'react-router-dom';
 import { useChatContext } from '../state/store';
+import {
+  DataTable,
+  DataTableCell,
+  DataTableHeadCell,
+  DataTableRow,
+  DataTableBody,
+  DataTableHead,
+} from '@rmwc/data-table';
+
+import '@material/data-table/dist/mdc.data-table.css';
+import '@rmwc/data-table/data-table.css';
+import '@rmwc/icon/icon.css';
+
+function DefaultColumnFilter({ column: { filterValue, preFilteredRows, setFilter } }: any) {
+  const count = preFilteredRows.length;
+
+  return (
+    <input
+      value={filterValue || ''}
+      onChange={(e) => {
+        setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
+      }}
+      placeholder={`Search ${count} records...`}
+    />
+  );
+}
 
 function Movies() {
   const { dispatch, movies } = useChatContext();
@@ -20,7 +46,30 @@ function Movies() {
     }
   }, []);
 
-  const data = useMemo(() => movies ?? [], [movies]);
+  const filterTypes = useMemo(
+    () => ({
+      // Add a new fuzzyTextFilterFn filter type.
+      // Or, override the default text filter to use
+      // "startWith"
+      text: (rows: any, id: any, filterValue: any) => {
+        return rows.filter((row: any) => {
+          const rowValue = row.values[id];
+          return rowValue !== undefined
+            ? String(rowValue).toLowerCase().startsWith(String(filterValue).toLowerCase())
+            : true;
+        });
+      },
+    }),
+    [],
+  );
+
+  const defaultColumn = useMemo(
+    () => ({
+      // Let's set up our default Filter UI
+      Filter: DefaultColumnFilter,
+    }),
+    [],
+  );
 
   const columns = useMemo(
     () => [
@@ -51,73 +100,48 @@ function Movies() {
     ],
     [],
   );
-  const tableInstance = useTable<any>({ columns, data });
 
-  //return <Link to={'/got/comments'}>Movies</Link>;
+  const data = useMemo(() => movies ?? [], [movies]);
+
+  const tableInstance = useTable<any>({ columns, data, defaultColumn, filterTypes }, useFilters);
+
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = tableInstance;
+
   const navigate = useNavigate();
 
   function rowClick(row: Movie) {
-    console.log(row);
     navigate(`/movies/${row.title}/${row.runtime}/comments`);
   }
 
-  return (
-    <>
-      <table {...getTableProps()}>
-        <thead>
-          {
-            // Loop over the header rows
-            headerGroups.map((headerGroup) => (
-              // Apply the header row props
-              <tr {...headerGroup.getHeaderGroupProps()}>
-                {
-                  // Loop over the headers in each row
-                  headerGroup.headers.map((column) => (
-                    // Apply the header cell props
-                    <th {...column.getHeaderProps()}>
-                      {
-                        // Render the header
-                        column.render('Header')
-                      }
-                    </th>
-                  ))
-                }
-              </tr>
-            ))
-          }
-        </thead>
-        {/* Apply the table body props */}
-        <tbody {...getTableBodyProps()}>
-          {
-            // Loop over the table rows
-            rows.map((row) => {
-              // Prepare the row for display
-              prepareRow(row);
-              return (
-                // Apply the row props
-                <tr {...row.getRowProps()} onClick={() => rowClick(row.original)}>
-                  {
-                    // Loop over the rows cells
-                    row.cells.map((cell) => {
-                      // Apply the cell props
-                      return (
-                        <td {...cell.getCellProps()}>
-                          {
-                            // Render the cell contents
-                            cell.render('Cell')
-                          }
-                        </td>
-                      );
-                    })
-                  }
-                </tr>
-              );
-            })
-          }
-        </tbody>
-      </table>
-    </>
+  return !movies ? (
+    <p>{'Loading...'}</p>
+  ) : (
+    <DataTable {...getTableProps()} style={{ width: '100vw' }}>
+      <DataTableHead>
+        {headerGroups.map((headerGroup) => (
+          <DataTableRow {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map((column) => (
+              <DataTableHeadCell {...column.getHeaderProps()}>
+                {column.render('Header')}
+                <div>{column.canFilter ? column.render('Filter') : null}</div>
+              </DataTableHeadCell>
+            ))}
+          </DataTableRow>
+        ))}
+      </DataTableHead>
+      <DataTableBody {...getTableBodyProps()}>
+        {rows.map((row, i) => {
+          prepareRow(row);
+          return (
+            <DataTableRow {...row.getRowProps()} onClick={() => rowClick(row.original)} style={{ cursor: 'pointer' }}>
+              {row.cells.map((cell) => {
+                return <DataTableCell {...cell.getCellProps()}>{cell.render('Cell')}</DataTableCell>;
+              })}
+            </DataTableRow>
+          );
+        })}
+      </DataTableBody>
+    </DataTable>
   );
 }
 

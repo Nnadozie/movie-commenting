@@ -1,18 +1,6 @@
-import { FormEventHandler, useEffect, useState } from 'react';
-import {
-  auth,
-  provider,
-  signInWithPopup,
-  GoogleAuthProvider,
-  getDatabase,
-  ref,
-  set,
-  serverTimestamp,
-  push,
-  onValue,
-} from '../firebase';
-import { ChatProvider, useChatContext } from '../state/store';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { auth, provider, signInWithPopup, getDatabase, ref, serverTimestamp, push, onValue } from '../firebase';
+import { useChatContext } from '../state/store';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,37 +14,45 @@ import {
   ConversationHeader,
 } from '@chatscope/chat-ui-kit-react';
 
+type SendHandler = (innerHtml: string, textContent: string, innerText: string, nodes: NodeList) => void;
+type Comment = { comment: string; name: string; timestamp: string; uid: string; photoURL: string };
+
 function Chat() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  type SendHandler = (innerHtml: string, textContent: string, innerText: string, nodes: NodeList) => void;
-  const onSubmit: SubmitHandler<{ [x: string]: any }> = (data) => {
-    sendComment(data.comment);
-    console.log(data);
-  };
-
-  const onSend: SendHandler = (data) => {
-    sendComment(data);
-    console.log(data);
-  };
-  console.log(errors);
-
-  type Comment = { comment: string; name: string; timestamp: string; uid: string; photoURL: string };
-
-  const { dispatch, user } = useChatContext();
-  console.log(user);
   const [comments, setComments] = useState<{ [key: string]: Comment }>({});
 
+  const { dispatch, user } = useChatContext();
+
   const { name, runtime } = useParams();
+
   const movieID = name ?? '' + runtime ?? '';
+
   const db = getDatabase();
 
   const movieRef = ref(db, `movies/${movieID}`);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (movieID) {
+      onValue(movieRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data !== null) setComments(data);
+      });
+    }
+  }, [movieID]);
+
+  function signIn() {
+    //signInWithRedirect(auth, provider);
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        dispatch({ type: 'SET_USER', value: result.user });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  const onSend: SendHandler = (data) => {
+    sendComment(data);
+  };
 
   function sendComment(comment: string) {
     push(movieRef, {
@@ -68,42 +64,7 @@ function Chat() {
     });
   }
 
-  useEffect(() => {
-    if (movieID) {
-      onValue(movieRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data !== null) setComments(data);
-        console.log(data);
-      });
-    }
-  }, [movieID]);
-
-  function signIn() {
-    //signInWithRedirect(auth, provider);
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        //This gives you a Google Access Token. You can use it to access the Google API.
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-        // The signed-in user info.
-        const user = result.user;
-        dispatch({ type: 'SET_USER', value: result.user });
-        // ...
-        console.log(user, credential, token);
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
-
-        console.log(errorMessage, errorCode, email, credential);
-      });
-  }
+  const navigate = useNavigate();
 
   return (
     <div id="chat">
@@ -112,7 +73,7 @@ function Chat() {
           Sign in With Google
         </button>
       ) : (
-        <div style={{ position: 'relative', height: '500px' }}>
+        <div style={{ position: 'relative', height: '100vh' }}>
           <MainContainer>
             <ChatContainer>
               <ConversationHeader>
