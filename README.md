@@ -1,46 +1,37 @@
-# Getting Started with Create React App
+## How to run the code
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+`yarn install && yarn start`
 
-## Available Scripts
+## Explanation of architecture
 
-In the project directory, you can run:
+Design Doc: https://docs.google.com/document/d/1J7Q96OMFmCobohV8OpLc2rJr3YzAn2JgndjH9iAVimA/edit?usp=sharing
 
-### `yarn start`
+- List of movies is stored in global useContext based store. This means we only need to fetch the movies list once on app load then reference the store for subsequent use.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- User details are stored in global useContext based store. This means users only need to sign in once on app load to comment on multiple movies, and won't need to sign in again unless they refresh the app.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- The original movies endpoint is proxied via a custom deployed express server which sets a cors header that allows all IPs to access it, to get around the original resource not having had a broad access cors header set.
 
-### `yarn test`
+- Pre-existing libraies were preferred over custom implmentations for speed. Particularly preferred React-Table and chatscope/chat-ui-kit-react.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Sensitive information such as API keys were read in using environment variables
 
-### `yarn build`
+- Routes were preffered over passing around events as originally aimed for in the design doc, due to ease of implementation.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Firebase realtime database was preffered over alternatives due to simple nature of app, and the availability of a Webhook to get lastest data when new updates happen. This webhook was critical for realtime commenting.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Backend proxy hosted on Heroku, frontend hosted on Vercel
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## If you had more time, what would you like to improve?
 
-### `yarn eject`
+- Better caching using local storage so users won't need to re-sign in after app refreshes, but would rather need to re-sign in after session expirations
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Had a look at the rendering performance of the app and optimized as needed
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Gotten access to backend to whitelist the front-end's IP with re: to CORs, and implemented pagination
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- Implemented better table filtering. Particularly the multiselect filtering.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Implemented better styling with more micro-interactions.
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+- And for proper production all the usual bells and whistles - set up error boundaries, logging, observability, added tests for critical components to begin with, e.t.c e.t.c
